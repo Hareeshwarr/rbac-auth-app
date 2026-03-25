@@ -1,0 +1,247 @@
+/* Admin Dashboard - Layout & theme matching UserDashboard but with Purple/Indigo aesthetic */
+
+.admin-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #f5f3ff 0%, #ede9fe 35%, #faf5ff 100%);
+  padding: 2rem 2.5rem;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-subtitle {
+  font-weight: 500;
+  color: #4c1d95;
+  margin-left: 0.5rem;
+  font-size: 1rem;
+}
+
+.dashboard-logout {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.dashboard-logout:hover {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Info cards */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(91, 33, 182, 0.04);
+  border: 1px solid rgba(237, 233, 254, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #8b5cf6;
+  border-radius: 4px 0 0 4px;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.info-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-value.status-active {
+  color: #10b981;
+}
+
+.info-value.status-offline {
+  color: #ef4444;
+}
+
+.dashboard-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+/* Chart section */
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(91, 33, 182, 0.04);
+  border: 1px solid rgba(237, 233, 254, 0.8);
+}
+
+.chart-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.chart-subtitle {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.chart-container {
+  width: 100%;
+  min-height: 260px;
+}
+
+.bar-chart-container {
+  margin-bottom: 0.5rem;
+}
+
+.view-all-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8b5cf6;
+  text-decoration: none;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+/* Access Security card */
+.access-legend {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  font-size: 0.8rem;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.admin {
+  background: #8b5cf6;
+}
+
+.legend-dot.mod {
+  background: #c084fc;
+}
+
+.legend-dot.user {
+  background: #e9d5ff;
+}
+
+.donut-chart-container {
+  margin-top: 0.25rem;
+}
+
+/* Loading state */
+.dashboard-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: linear-gradient(160deg, #f5f3ff 0%, #ede9fe 100%);
+  color: #6b7280;
+}
+
+.dashboard-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #ede9fe;
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: dashboard-spin 0.8s linear infinite;
+}
+
+@keyframes dashboard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+}

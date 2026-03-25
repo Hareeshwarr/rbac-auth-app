@@ -1,0 +1,125 @@
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ===== FULLSCREEN FIX ===== */
+.login-wrapper {
+  position: fixed;          /* 🔑 FIX */
+  inset: 0;                 /* top:0 right:0 bottom:0 left:0 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top, #1c1f3b, #0a0d24);
+}
+
+/* ===== GLASS CARD ===== */
+.login-card {
+  position: relative;
+  width: 380px;
+  padding: 130px 32px 40px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+/* ===== LOTTIE ===== */
+.login-lottie {
+  position: absolute;
+  top: -110px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+}
+
+/* ===== TITLE ===== */
+.login-title {
+  color: #ffffff;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+}
+
+/* ===== ERROR ===== */
+.login-error {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff6b6b;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+/* ===== INPUTS ===== */
+.input-box {
+  position: relative;
+  margin-bottom: 26px;
+}
+
+.input-box input {
+  width: 100%;
+  padding: 12px 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-box label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  pointer-events: none;
+  transition: 0.3s;
+}
+
+.input-box input:focus + label,
+.input-box input:valid + label {
+  top: -6px;
+  font-size: 10px;
+  color: #7aa2ff;
+}
+
+/* ===== BUTTON ===== */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2948ff, #396afc);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(57, 106, 252, 0.6);
+}
+
+/* ===== LINKS ===== */
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 22px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.login-links span {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.login-links span:hover {
+  color: #7aa2ff;
+}

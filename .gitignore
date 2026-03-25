@@ -1,0 +1,30 @@
+# Backend
+code/backend/**/target/
+code/backend/**/.settings/
+code/backend/**/.classpath
+code/backend/**/.project
+*.class
+*.jar
+!.mvn/wrapper/*.jar
+
+# Frontend
+code/frontend/**/node_modules/
+code/frontend/**/dist/
+code/frontend/**/.env
+code/frontend/**/.env.local
+code/frontend/**/.env.production.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Env files
+.env
+.env.local
+
+# Claude worktrees
+.claude/worktrees/
+# Zip files
+*.zip

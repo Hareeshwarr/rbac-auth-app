@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: rbac-backend
+    runtime: docker
+    dockerfilePath: ./code/backend/spring-boot-spring-security-jwt-authentication-master_spring-boot-spring-security-jwt-authentication-master/Dockerfile
+    dockerContext: ./code/backend/spring-boot-spring-security-jwt-authentication-master_spring-boot-spring-security-jwt-authentication-master
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rbac-db
+          property: connectionString
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: rbac-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: rbac-db
+          property: password
+      - key: HIBERNATE_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://your-app.vercel.app
+
+databases:
+  - name: rbac-db
+    plan: free
+    databaseName: rgba

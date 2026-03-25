@@ -1,0 +1,182 @@
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ===== FULLSCREEN WRAPPER ===== */
+.register-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: radial-gradient(circle at top, #1c1f3b, #0a0d24);
+}
+
+/* ===== GLASS CARD WITH GLOW ===== */
+.register-card {
+  position: relative;
+  width: 400px;
+  padding: 48px 32px 40px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  border-radius: 16px;
+  text-align: center;
+
+  box-shadow:
+    0 0 20px rgba(57, 106, 252, 0.25),
+    0 0 40px rgba(57, 106, 252, 0.15),
+    0 30px 80px rgba(0, 0, 0, 0.6);
+
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+/* ===== GLOW ANIMATION ===== */
+@keyframes glowPulse {
+  0% {
+    box-shadow:
+      0 0 20px rgba(57, 106, 252, 0.25),
+      0 0 40px rgba(57, 106, 252, 0.15),
+      0 30px 80px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(122, 162, 255, 0.45),
+      0 0 60px rgba(122, 162, 255, 0.25),
+      0 30px 90px rgba(0, 0, 0, 0.7);
+  }
+  100% {
+    box-shadow:
+      0 0 20px rgba(57, 106, 252, 0.25),
+      0 0 40px rgba(57, 106, 252, 0.15),
+      0 30px 80px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ===== TITLE ===== */
+.register-title {
+  color: #ffffff;
+  letter-spacing: 2px;
+  margin-bottom: 22px;
+}
+
+/* ===== MESSAGES ===== */
+.register-error {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff6b6b;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.register-success {
+  background: rgba(0, 255, 170, 0.15);
+  color: #00ffaa;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+/* ===== INPUTS ===== */
+.input-box {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.input-box input {
+  width: 100%;
+  padding: 12px 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  outline: none;
+}
+
+.input-box label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  transition: 0.3s;
+}
+
+.input-box input:focus + label,
+.input-box input:valid + label {
+  top: -6px;
+  font-size: 10px;
+  color: #7aa2ff;
+}
+
+/* ===== SELECT ===== */
+.select-box {
+  text-align: left;
+  margin-bottom: 26px;
+}
+
+.select-box label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.select-box select {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  outline: none;
+}
+
+/* ===== BUTTON ===== */
+.register-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2948ff, #396afc);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-btn:hover {
+  box-shadow: 0 12px 30px rgba(57, 106, 252, 0.6);
+}
+
+/* ===== LINKS ===== */
+.register-links {
+  margin-top: 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.register-links span {
+  cursor: pointer;
+}
+
+.register-links span:hover {
+  color: #7aa2ff;
+}
+
+/* ===== LOTTIE BELOW CARD ===== */
+.register-lottie {
+  width: 260px;
+  opacity: 0.9;
+  animation: floatUpDown 3.5s ease-in-out infinite;
+}
+
+/* ===== FLOATING ANIMATION ===== */
+@keyframes floatUpDown {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(12px); }
+  100% { transform: translateY(0); }
+}
