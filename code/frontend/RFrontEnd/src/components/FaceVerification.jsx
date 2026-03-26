@@ -3,11 +3,17 @@ import * as faceapi from "face-api.js";
 
 export default function FaceVerification({ onVerified }) {
   const videoRef = useRef();
+  const streamRef = useRef(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     startCamera();
     loadModels();
+
+    // Cleanup: stop camera when component unmounts
+    return () => {
+      stopCamera();
+    };
   }, []);
 
   const loadModels = async () => {
@@ -17,9 +23,22 @@ export default function FaceVerification({ onVerified }) {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoRef.current.srcObject = stream;
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
     } catch {
       setError("Camera access denied");
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
   };
 
@@ -30,7 +49,8 @@ export default function FaceVerification({ onVerified }) {
     );
 
     if (detection) {
-      onVerified(); // ✅ HUMAN VERIFIED
+      stopCamera(); // Stop camera immediately after verification
+      onVerified();
     } else {
       setError("No face detected. Please look at the camera.");
     }
