@@ -32,7 +32,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isAuthRequest = error.config?.url?.includes("/auth/signin") || error.config?.url?.includes("/auth/signup");
+    const isAuthRequest = error.config?.url?.includes("/auth/");
     if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem("token");
       window.location.href = "/login";

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,30 +18,28 @@ public class EmailService {
   @Value("${spring.mail.username:noreply@example.com}")
   private String fromEmail;
 
-  @Value("${app.frontend.url:http://localhost:5173}")
-  private String frontendUrl;
-
-  @Async
-  public void sendPasswordResetEmail(String toEmail, String token) {
-    String resetLink = frontendUrl + "/reset-password?token=" + token;
-
+  /**
+   * Sends a password reset OTP email. Returns true if sent successfully, false otherwise.
+   */
+  public boolean sendPasswordResetOtp(String toEmail, String otp) {
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(fromEmail);
     message.setTo(toEmail);
-    message.setSubject("Password Reset Request - RBAC Auth");
+    message.setSubject("Password Reset OTP - RBAC Auth");
     message.setText(
         "You requested a password reset.\n\n" +
-        "Click the link below to reset your password:\n" +
-        resetLink + "\n\n" +
-        "This link expires in 30 minutes.\n\n" +
+        "Your OTP code is: " + otp + "\n\n" +
+        "This code expires in 10 minutes.\n\n" +
         "If you did not request this, please ignore this email."
     );
 
     try {
       mailSender.send(message);
-      logger.info("Password reset email sent to {}", toEmail);
+      logger.info("Password reset OTP email sent to {}", toEmail);
+      return true;
     } catch (Exception e) {
-      logger.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+      logger.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
+      return false;
     }
   }
 }

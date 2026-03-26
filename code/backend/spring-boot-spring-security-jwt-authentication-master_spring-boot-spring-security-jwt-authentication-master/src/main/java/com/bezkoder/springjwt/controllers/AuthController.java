@@ -1,10 +1,12 @@
 package com.bezkoder.springjwt.controllers;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
@@ -147,40 +149,99 @@ public class AuthController {
           // Delete any existing token for this user
           passwordResetTokenRepository.deleteByUser(user);
 
-          // Generate new token (30 min expiry)
-          String token = UUID.randomUUID().toString();
+          // Generate 6-digit OTP (10 min expiry)
+          String otp = String.format("%06d", new Random().nextInt(999999));
           PasswordResetToken resetToken = new PasswordResetToken(
-              token, user, Instant.now().plusSeconds(1800));
+              otp, user, Instant.now().plusSeconds(600));
           passwordResetTokenRepository.save(resetToken);
 
-          // Send email
-          emailService.sendPasswordResetEmail(user.getEmail(), token);
+          // Try to send email
+          boolean emailSent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
 
-          return ResponseEntity.ok(new MessageResponse(
-              "Password reset link sent to your email."));
+          Map<String, Object> response = new HashMap<>();
+          response.put("message", "OTP has been generated for your account.");
+          response.put("emailSent", emailSent);
+          if (!emailSent) {
+            // If email fails (e.g., on free hosting), include OTP in response for demo
+            response.put("otp", otp);
+            response.put("note", "Email service unavailable. Use the OTP shown on screen.");
+          }
+
+          return ResponseEntity.ok(response);
         })
         .orElse(ResponseEntity.ok(new MessageResponse(
-            "If an account with that email exists, a reset link has been sent.")));
+            "If an account with that email exists, an OTP has been sent.")));
   }
 
-  @PostMapping("/reset-password")
-  public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-    return passwordResetTokenRepository.findByToken(request.getToken())
+  @PostMapping("/verify-otp")
+  public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+    String otp = request.get("otp");
+
+    if (email == null || otp == null) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("Email and OTP are required."));
+    }
+
+    return passwordResetTokenRepository.findByToken(otp)
         .map(resetToken -> {
           if (resetToken.isExpired()) {
             passwordResetTokenRepository.delete(resetToken);
             return ResponseEntity.badRequest()
-                .body(new MessageResponse("Reset link has expired. Please request a new one."));
+                .body(new MessageResponse("OTP has expired. Please request a new one."));
+          }
+
+          if (!resetToken.getUser().getEmail().equals(email)) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Invalid OTP for this email."));
+          }
+
+          Map<String, Object> response = new HashMap<>();
+          response.put("message", "OTP verified successfully.");
+          response.put("valid", true);
+          return ResponseEntity.ok(response);
+        })
+        .orElse(ResponseEntity.badRequest()
+            .body(new MessageResponse("Invalid OTP.")));
+  }
+
+  @PostMapping("/reset-password")
+  public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+    String otp = request.get("otp");
+    String newPassword = request.get("newPassword");
+
+    if (email == null || otp == null || newPassword == null) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("Email, OTP, and new password are required."));
+    }
+
+    if (newPassword.length() < 6 || newPassword.length() > 40) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("Password must be 6-40 characters."));
+    }
+
+    return passwordResetTokenRepository.findByToken(otp)
+        .map(resetToken -> {
+          if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("OTP has expired. Please request a new one."));
+          }
+
+          if (!resetToken.getUser().getEmail().equals(email)) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Invalid OTP for this email."));
           }
 
           User user = resetToken.getUser();
-          user.setPassword(encoder.encode(request.getNewPassword()));
+          user.setPassword(encoder.encode(newPassword));
           userRepository.save(user);
           passwordResetTokenRepository.delete(resetToken);
 
           return ResponseEntity.ok(new MessageResponse("Password reset successfully!"));
         })
         .orElse(ResponseEntity.badRequest()
-            .body(new MessageResponse("Invalid reset token.")));
+            .body(new MessageResponse("Invalid OTP.")));
   }
 }
