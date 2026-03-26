@@ -43,7 +43,7 @@ export default function Register() {
         form.email,
         form.password,
         [form.role],
-        form.phoneNumber || undefined
+        form.phoneNumber ? "+91" + form.phoneNumber : undefined
       );
       setSuccess("Registration successful! Redirecting...");
       setTimeout(() => navigate("/login"), 1500);
@@ -105,15 +105,20 @@ export default function Register() {
             <label>PASSWORD</label>
           </div>
 
-          <div className="input-box">
+          <div className="input-box" style={{ position: "relative" }}>
             <input
               type="tel"
               name="phoneNumber"
               value={form.phoneNumber}
-              onChange={handleChange}
-              placeholder="+91XXXXXXXXXX"
+              onChange={(e) => setForm({ ...form, phoneNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+              maxLength={10}
+              style={{ paddingLeft: "45px" }}
             />
-            <label>PHONE NUMBER (OPTIONAL)</label>
+            <span style={{
+              position: "absolute", left: "0", top: "50%", transform: "translateY(-50%)",
+              color: "rgba(255,255,255,0.6)", fontSize: "15px", pointerEvents: "none"
+            }}>+91</span>
+            <label style={{ left: "45px" }}>PHONE (OPTIONAL)</label>
           </div>
 
           <div className="select-box">

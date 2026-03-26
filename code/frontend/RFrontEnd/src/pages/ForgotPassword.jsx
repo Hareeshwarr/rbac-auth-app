@@ -123,11 +123,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      let formattedPhone = phoneNumber.trim();
-      if (!formattedPhone.startsWith("+")) {
-        formattedPhone = "+91" + formattedPhone;
-      }
-      setPhoneNumber(formattedPhone);
+      let formattedPhone = "+91" + phoneNumber.replace(/\D/g, "").slice(0, 10);
 
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-forgot", {
@@ -403,11 +399,16 @@ export default function ForgotPassword() {
                   <input
                     type="tel"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     required
-                    placeholder="+91XXXXXXXXXX"
+                    maxLength={10}
+                    style={{ paddingLeft: "45px" }}
                   />
-                  <label>PHONE NUMBER</label>
+                  <span style={{
+                    position: "absolute", left: "0", top: "50%", transform: "translateY(-50%)",
+                    color: "rgba(255,255,255,0.6)", fontSize: "15px", pointerEvents: "none"
+                  }}>+91</span>
+                  <label style={{ left: "45px" }}>PHONE NUMBER</label>
                 </div>
                 <button className="login-btn" type="submit" disabled={loading}>
                   {loading ? "SENDING..." : "SEND OTP"}
