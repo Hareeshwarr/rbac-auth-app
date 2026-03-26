@@ -104,7 +104,7 @@ export default function Login() {
 
         <div className="login-links">
           <span onClick={() => navigate("/register")}>REGISTER</span>
-          <span>FORGOT PASSWORD</span>
+          <span onClick={() => navigate("/forgot-password")}>FORGOT PASSWORD</span>
         </div>
       </div>
     </div>

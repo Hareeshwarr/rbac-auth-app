@@ -1,8 +1,10 @@
 package com.bezkoder.springjwt.controllers;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
@@ -23,13 +25,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bezkoder.springjwt.models.ERole;
 import com.bezkoder.springjwt.models.Role;
 import com.bezkoder.springjwt.models.User;
+import com.bezkoder.springjwt.models.PasswordResetToken;
+import com.bezkoder.springjwt.payload.request.ForgotPasswordRequest;
 import com.bezkoder.springjwt.payload.request.LoginRequest;
+import com.bezkoder.springjwt.payload.request.ResetPasswordRequest;
 import com.bezkoder.springjwt.payload.request.SignupRequest;
 import com.bezkoder.springjwt.payload.response.JwtResponse;
 import com.bezkoder.springjwt.payload.response.MessageResponse;
+import com.bezkoder.springjwt.repository.PasswordResetTokenRepository;
 import com.bezkoder.springjwt.repository.RoleRepository;
 import com.bezkoder.springjwt.repository.UserRepository;
 import com.bezkoder.springjwt.security.jwt.JwtUtils;
+import com.bezkoder.springjwt.security.services.EmailService;
 import com.bezkoder.springjwt.security.services.UserDetailsImpl;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -50,6 +57,12 @@ public class AuthController {
 
   @Autowired
   JwtUtils jwtUtils;
+
+  @Autowired
+  PasswordResetTokenRepository passwordResetTokenRepository;
+
+  @Autowired
+  EmailService emailService;
 
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -125,5 +138,49 @@ public class AuthController {
     userRepository.save(user);
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+  }
+
+  @PostMapping("/forgot-password")
+  public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    return userRepository.findByEmail(request.getEmail())
+        .map(user -> {
+          // Delete any existing token for this user
+          passwordResetTokenRepository.deleteByUser(user);
+
+          // Generate new token (30 min expiry)
+          String token = UUID.randomUUID().toString();
+          PasswordResetToken resetToken = new PasswordResetToken(
+              token, user, Instant.now().plusSeconds(1800));
+          passwordResetTokenRepository.save(resetToken);
+
+          // Send email
+          emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+          return ResponseEntity.ok(new MessageResponse(
+              "Password reset link sent to your email."));
+        })
+        .orElse(ResponseEntity.ok(new MessageResponse(
+            "If an account with that email exists, a reset link has been sent.")));
+  }
+
+  @PostMapping("/reset-password")
+  public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    return passwordResetTokenRepository.findByToken(request.getToken())
+        .map(resetToken -> {
+          if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Reset link has expired. Please request a new one."));
+          }
+
+          User user = resetToken.getUser();
+          user.setPassword(encoder.encode(request.getNewPassword()));
+          userRepository.save(user);
+          passwordResetTokenRepository.delete(resetToken);
+
+          return ResponseEntity.ok(new MessageResponse("Password reset successfully!"));
+        })
+        .orElse(ResponseEntity.badRequest()
+            .body(new MessageResponse("Invalid reset token.")));
   }
 }
