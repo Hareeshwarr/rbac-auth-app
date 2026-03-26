@@ -144,33 +144,39 @@ public class AuthController {
 
   @PostMapping("/forgot-password")
   public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-    return userRepository.findByEmail(request.getEmail())
-        .map(user -> {
-          // Delete any existing token for this user
-          passwordResetTokenRepository.deleteByUser(user);
+    var userOpt = userRepository.findByEmail(request.getEmail());
 
-          // Generate 6-digit OTP (10 min expiry)
-          String otp = String.format("%06d", new Random().nextInt(999999));
-          PasswordResetToken resetToken = new PasswordResetToken(
-              otp, user, Instant.now().plusSeconds(600));
-          passwordResetTokenRepository.save(resetToken);
+    if (userOpt.isEmpty()) {
+      Map<String, Object> fallback = new HashMap<>();
+      fallback.put("message", "If an account with that email exists, an OTP has been sent.");
+      fallback.put("emailSent", false);
+      return ResponseEntity.ok(fallback);
+    }
 
-          // Try to send email
-          boolean emailSent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
+    User user = userOpt.get();
 
-          Map<String, Object> response = new HashMap<>();
-          response.put("message", "OTP has been generated for your account.");
-          response.put("emailSent", emailSent);
-          if (!emailSent) {
-            // If email fails (e.g., on free hosting), include OTP in response for demo
-            response.put("otp", otp);
-            response.put("note", "Email service unavailable. Use the OTP shown on screen.");
-          }
+    // Delete any existing token for this user
+    passwordResetTokenRepository.deleteByUser(user);
 
-          return ResponseEntity.ok(response);
-        })
-        .orElse(ResponseEntity.ok(new MessageResponse(
-            "If an account with that email exists, an OTP has been sent.")));
+    // Generate 6-digit OTP (10 min expiry)
+    String otp = String.format("%06d", new Random().nextInt(999999));
+    PasswordResetToken resetToken = new PasswordResetToken(
+        otp, user, Instant.now().plusSeconds(600));
+    passwordResetTokenRepository.save(resetToken);
+
+    // Try to send email
+    boolean emailSent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("message", "OTP has been generated for your account.");
+    response.put("emailSent", emailSent);
+    if (!emailSent) {
+      // If email fails (e.g., on free hosting), include OTP in response for demo
+      response.put("otp", otp);
+      response.put("note", "Email service unavailable. Use the OTP shown on screen.");
+    }
+
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/verify-otp")
