@@ -200,11 +200,11 @@ export default function Login() {
                     maxLength={10}
                     style={{ paddingLeft: "45px" }}
                   />
+                  <label style={{ top: "-6px", fontSize: "10px", color: "#7aa2ff" }}>PHONE NUMBER</label>
                   <span style={{
-                    position: "absolute", left: "0", top: "50%", transform: "translateY(-50%)",
+                    position: "absolute", left: "0", bottom: "12px",
                     color: "rgba(255,255,255,0.6)", fontSize: "15px", pointerEvents: "none"
                   }}>+91</span>
-                  <label style={{ left: "45px" }}>PHONE NUMBER</label>
                 </div>
                 <button className="login-btn" type="submit" disabled={loading}>
                   {loading ? "SENDING OTP..." : "SEND OTP"}
