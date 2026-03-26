@@ -77,6 +77,19 @@ export default function AdminDashboard() {
         <div className="info-card">
           <span className="info-label">Current Role</span>
           <span className="info-value">Administrator</span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: "4px",
+            background: "rgba(239, 68, 68, 0.15)",
+            border: "1px solid rgba(239, 68, 68, 0.4)",
+            padding: "3px 10px", borderRadius: "12px", marginTop: "8px",
+            fontSize: "10px", fontWeight: "bold", letterSpacing: "1px",
+            color: "#f87171"
+          }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
+            Security Level: HIGH
+          </span>
         </div>
         <div className="info-card">
           <span className="info-label">System Status</span>

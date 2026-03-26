@@ -177,9 +177,9 @@ export default function Onboarding() {
                 color: "#fff", fontSize: "14px", outline: "none"
               }}
             >
-              <option value="user" style={{ background: "#1c1f3b" }}>USER</option>
-              <option value="admin" style={{ background: "#1c1f3b" }}>ADMIN</option>
+              <option value="user" style={{ background: "#1c1f3b" }}>STUDENT</option>
               <option value="mod" style={{ background: "#1c1f3b" }}>MODERATOR</option>
+              {/* Admin not available via social login - must register with email/password */}
             </select>
           </div>
 

@@ -3,25 +3,30 @@ import { useContext } from "react";
 import { AuthContext } from "./AuthContext";
 
 export default function ProtectedRoute({ children, role }) {
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading, faceVerified } = useContext(AuthContext);
 
-  // ✅ 1. App load avvadaniki wait cheyyali
   if (loading) {
-    return <div>Loading...</div>;   // spinner pettachu
+    return <div>Loading...</div>;
   }
 
   const token = localStorage.getItem("token");
 
-  // ✅ 2. Token lekapothe → LOGIN
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ 3. Role mismatch ayithe maatrame → UNAUTHORIZED
   if (role && !user?.roles?.includes(role)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // ✅ 4. Everything OK
+  // Admin and Moderator require face verification before accessing dashboard
+  if (role === "ROLE_ADMIN" && !faceVerified) {
+    return <Navigate to="/face-verify" replace />;
+  }
+
+  if (role === "ROLE_MODERATOR" && !faceVerified) {
+    return <Navigate to="/face-verify" replace />;
+  }
+
   return children;
 }

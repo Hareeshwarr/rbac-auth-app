@@ -4,7 +4,6 @@ import Lottie from "lottie-react";
 import loginAnimation from "../assets/Face scanning.json";
 import { login, firebaseLogin } from "../api/authService";
 import { AuthContext } from "../auth/AuthContext";
-import FaceVerification from "../components/FaceVerification";
 import { auth, googleProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "../firebase/firebaseConfig";
 import "../styles/Login.css";
 
@@ -15,7 +14,6 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Phone login state
@@ -24,7 +22,6 @@ export default function Login() {
   const [phoneOtp, setPhoneOtp] = useState("");
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [phoneSent, setPhoneSent] = useState(false);
-  const recaptchaRef = useRef(null);
 
   useEffect(() => {
     if (user?.roles?.includes("ROLE_ADMIN")) navigate("/admin", { replace: true });
@@ -32,23 +29,25 @@ export default function Login() {
     else if (user) navigate("/user", { replace: true });
   }, [user, navigate]);
 
+  // Helper: route user after login based on roles
+  const routeAfterLogin = (data) => {
+    loginUser(data);
+    const roles = data.roles;
+    // Admin & Mod will be redirected to /face-verify by ProtectedRoute
+    if (roles.includes("ROLE_ADMIN")) navigate("/admin");
+    else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
+    else navigate("/user"); // Students go straight to dashboard
+  };
+
+  // Email/Password login (for all roles including Admin)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!verified) {
-      setError("Please verify your face first");
-      return;
-    }
+    setLoading(true);
 
     try {
       const res = await login(username, password);
-      loginUser(res.data);
-
-      if (res.data.roles.includes("ROLE_ADMIN")) navigate("/admin");
-      else if (res.data.roles.includes("ROLE_MODERATOR")) navigate("/mod");
-      else navigate("/user");
-
+      routeAfterLogin(res.data);
     } catch (err) {
       const res = err.response;
       if (res?.data?.message) {
@@ -58,10 +57,12 @@ export default function Login() {
       } else {
         setError("Invalid username or password");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Google Sign-In
+  // Google Sign-In (blocked for Admins)
   const handleGoogleLogin = async () => {
     setError("");
     setLoading(true);
@@ -70,16 +71,18 @@ export default function Login() {
       const idToken = await result.user.getIdToken();
 
       const res = await firebaseLogin(
-        idToken,
-        "google",
-        result.user.email,
-        result.user.displayName,
-        result.user.phoneNumber,
-        result.user.uid
+        idToken, "google",
+        result.user.email, result.user.displayName,
+        result.user.phoneNumber, result.user.uid
       );
 
+      // Block Admins from using Google login
+      if (res.data.roles && res.data.roles.includes("ROLE_ADMIN")) {
+        setError("Admin accounts cannot use Google Sign-In. Please use email/password login.");
+        return;
+      }
+
       if (res.data.newUser) {
-        // New user — go to onboarding
         navigate("/onboarding", {
           state: {
             token: res.data.accessToken,
@@ -89,11 +92,7 @@ export default function Login() {
           }
         });
       } else {
-        loginUser(res.data);
-        const roles = res.data.roles;
-        if (roles.includes("ROLE_ADMIN")) navigate("/admin");
-        else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
-        else navigate("/user");
+        routeAfterLogin(res.data);
       }
     } catch (err) {
       if (err.code === "auth/popup-closed-by-user") {
@@ -115,10 +114,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Format phone number
       let formattedPhone = "+91" + phoneNumber.replace(/\D/g, "").slice(0, 10);
 
-      // Setup reCAPTCHA
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
           size: "invisible",
@@ -132,13 +129,12 @@ export default function Login() {
     } catch (err) {
       console.error("Phone OTP error:", err);
       if (err.code === "auth/invalid-phone-number") {
-        setError("Invalid phone number. Include country code (e.g., +91...)");
+        setError("Invalid phone number format.");
       } else if (err.code === "auth/too-many-requests") {
         setError("Too many attempts. Please try again later.");
       } else {
         setError("Failed to send OTP: " + (err.message || "Unknown error"));
       }
-      // Reset reCAPTCHA on error
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = null;
@@ -159,12 +155,9 @@ export default function Login() {
       const idToken = await result.user.getIdToken();
 
       const res = await firebaseLogin(
-        idToken,
-        "phone",
-        result.user.email,
-        result.user.displayName,
-        result.user.phoneNumber,
-        result.user.uid
+        idToken, "phone",
+        result.user.email, result.user.displayName,
+        result.user.phoneNumber, result.user.uid
       );
 
       if (res.data.newUser) {
@@ -177,11 +170,7 @@ export default function Login() {
           }
         });
       } else {
-        loginUser(res.data);
-        const roles = res.data.roles;
-        if (roles.includes("ROLE_ADMIN")) navigate("/admin");
-        else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
-        else navigate("/user");
+        routeAfterLogin(res.data);
       }
     } catch (err) {
       if (err.code === "auth/invalid-verification-code") {
@@ -236,7 +225,7 @@ export default function Login() {
             ) : (
               <form onSubmit={handleVerifyPhoneOtp}>
                 <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", marginBottom: "10px" }}>
-                  OTP sent to {phoneNumber}
+                  OTP sent to +91{phoneNumber}
                 </p>
                 <div className="input-box">
                   <input
@@ -264,13 +253,7 @@ export default function Login() {
           </div>
         ) : (
           <>
-            {/* Face Verification */}
-            {!verified && (
-              <FaceVerification onVerified={() => setVerified(true)} />
-            )}
-
-            {verified && <p style={{ color: "lightgreen" }}>Face verified</p>}
-
+            {/* Email/Password form - no face verify here (moved to post-login for admin/mod) */}
             <form onSubmit={handleSubmit}>
               <div className="input-box">
                 <input
@@ -278,7 +261,6 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  disabled={!verified}
                 />
                 <label>USERNAME</label>
               </div>
@@ -289,17 +271,12 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={!verified}
                 />
                 <label>PASSWORD</label>
               </div>
 
-              <button
-                className="login-btn"
-                type="submit"
-                disabled={!verified}
-              >
-                SUBMIT
+              <button className="login-btn" type="submit" disabled={loading}>
+                {loading ? "SIGNING IN..." : "SIGN IN"}
               </button>
             </form>
 
@@ -320,11 +297,8 @@ export default function Login() {
               style={{
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-                marginBottom: "8px"
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: "10px", marginBottom: "8px"
               }}
             >
               <svg width="18" height="18" viewBox="0 0 48 48">
@@ -343,9 +317,7 @@ export default function Login() {
               style={{
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center",
                 gap: "10px"
               }}
             >
