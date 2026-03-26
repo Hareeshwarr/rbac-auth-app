@@ -1,6 +1,5 @@
 package com.bezkoder.springjwt.controllers;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class FirebaseAuthController {
   /**
    * Firebase login/signup endpoint.
    * Verifies Firebase ID token, creates or finds local user, returns our JWT.
-   * Works for both Google Sign-In and Phone OTP login.
+   * Returns isNewUser=true if this is a first-time social/phone login.
    */
   @PostMapping("/firebase-login")
   public ResponseEntity<?> firebaseLogin(@RequestBody Map<String, String> request) {
@@ -66,7 +65,6 @@ public class FirebaseAuthController {
     }
 
     if (!FirebaseApp.getApps().isEmpty()) {
-      // Firebase Admin SDK available - verify token server-side
       try {
         FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
         String firebaseUid = decodedToken.getUid();
@@ -82,8 +80,6 @@ public class FirebaseAuthController {
             .body(new MessageResponse("Invalid Firebase token: " + e.getMessage()));
       }
     } else {
-      // Firebase Admin SDK not initialized - trust the frontend token data
-      // This is less secure but works without service account
       String email = request.get("email");
       String displayName = request.get("displayName");
       String phone = request.get("phoneNumber");
@@ -99,8 +95,102 @@ public class FirebaseAuthController {
   }
 
   /**
+   * Complete profile for new social/phone users.
+   * Sets their chosen username and role.
+   */
+  @PostMapping("/complete-profile")
+  public ResponseEntity<?> completeProfile(@RequestBody Map<String, String> request) {
+    String token = request.get("token");
+    String username = request.get("username");
+    String role = request.get("role");
+    String email = request.get("email");
+
+    if (username == null || username.trim().length() < 3 || username.length() > 20) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("Username must be between 3 and 20 characters."));
+    }
+
+    // Get user from JWT token
+    if (token == null || token.isEmpty()) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("Token is required."));
+    }
+
+    String tokenUsername;
+    try {
+      tokenUsername = jwtUtils.getUserNameFromJwtToken(token);
+    } catch (Exception e) {
+      return ResponseEntity.status(401)
+          .body(new MessageResponse("Invalid token."));
+    }
+
+    var userOpt = userRepository.findByUsername(tokenUsername);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("User not found."));
+    }
+
+    User user = userOpt.get();
+
+    // Check if new username is taken (if different from current)
+    if (!username.equals(user.getUsername()) && userRepository.existsByUsername(username)) {
+      return ResponseEntity.badRequest()
+          .body(new MessageResponse("Error: Username is already taken!"));
+    }
+
+    // Update username
+    user.setUsername(username);
+
+    // Update email if provided (for phone users)
+    if (email != null && !email.isEmpty() && !email.equals(user.getEmail())) {
+      if (userRepository.existsByEmail(email)) {
+        return ResponseEntity.badRequest()
+            .body(new MessageResponse("Error: Email is already in use!"));
+      }
+      user.setEmail(email);
+    }
+
+    // Update role
+    if (role != null) {
+      Set<Role> roles = new HashSet<>();
+      switch (role) {
+        case "admin":
+          Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+          roles.add(adminRole);
+          break;
+        case "mod":
+          Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
+              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+          roles.add(modRole);
+          break;
+        default:
+          Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+          roles.add(userRole);
+      }
+      user.setRoles(roles);
+    }
+
+    userRepository.save(user);
+
+    // Generate new JWT with updated username
+    String jwt = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
+
+    List<String> roleNames = user.getRoles().stream()
+        .map(r -> r.getName().name())
+        .collect(Collectors.toList());
+
+    return ResponseEntity.ok(new JwtResponse(jwt,
+        user.getId(),
+        user.getUsername(),
+        user.getEmail(),
+        roleNames,
+        false));
+  }
+
+  /**
    * Phone-based password reset.
-   * After Firebase phone verification, allows resetting password.
    */
   @PostMapping("/phone-reset-password")
   public ResponseEntity<?> phoneResetPassword(@RequestBody Map<String, String> request) {
@@ -118,7 +208,6 @@ public class FirebaseAuthController {
           .body(new MessageResponse("Password must be 6-40 characters."));
     }
 
-    // Verify Firebase token if available
     if (idToken != null && !FirebaseApp.getApps().isEmpty()) {
       try {
         FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
@@ -134,7 +223,6 @@ public class FirebaseAuthController {
       }
     }
 
-    // Find user by phone number
     var userOpt = userRepository.findByPhoneNumber(phoneNumber);
     if (userOpt.isEmpty()) {
       return ResponseEntity.badRequest()
@@ -151,13 +239,14 @@ public class FirebaseAuthController {
   private ResponseEntity<?> handleFirebaseUser(String firebaseUid, String email,
       String displayName, String phone, String authProvider) {
 
+    boolean isNewUser = false;
+
     // Try to find existing user by Firebase UID
     var userOpt = userRepository.findByFirebaseUid(firebaseUid);
 
     User user;
     if (userOpt.isPresent()) {
       user = userOpt.get();
-      // Update phone if provided and not set
       if (phone != null && user.getPhoneNumber() == null) {
         user.setPhoneNumber(phone);
         userRepository.save(user);
@@ -167,7 +256,6 @@ public class FirebaseAuthController {
       if (email != null) {
         var emailUserOpt = userRepository.findByEmail(email);
         if (emailUserOpt.isPresent()) {
-          // Link Firebase account to existing user
           user = emailUserOpt.get();
           user.setFirebaseUid(firebaseUid);
           if (phone != null) user.setPhoneNumber(phone);
@@ -175,9 +263,9 @@ public class FirebaseAuthController {
           userRepository.save(user);
         } else {
           user = createNewFirebaseUser(firebaseUid, email, displayName, phone, authProvider);
+          isNewUser = true;
         }
       } else if (phone != null) {
-        // Phone login - check by phone
         var phoneUserOpt = userRepository.findByPhoneNumber(phone);
         if (phoneUserOpt.isPresent()) {
           user = phoneUserOpt.get();
@@ -185,13 +273,14 @@ public class FirebaseAuthController {
           userRepository.save(user);
         } else {
           user = createNewFirebaseUser(firebaseUid, email, displayName, phone, authProvider);
+          isNewUser = true;
         }
       } else {
         user = createNewFirebaseUser(firebaseUid, email, displayName, phone, authProvider);
+        isNewUser = true;
       }
     }
 
-    // Generate our JWT token
     String jwt = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
 
     List<String> roles = user.getRoles().stream()
@@ -202,45 +291,19 @@ public class FirebaseAuthController {
         user.getId(),
         user.getUsername(),
         user.getEmail(),
-        roles));
+        roles,
+        isNewUser));
   }
 
   private User createNewFirebaseUser(String firebaseUid, String email,
       String displayName, String phone, String authProvider) {
 
-    // Generate username from display name or email or phone
-    String username;
-    if (displayName != null && !displayName.isEmpty()) {
-      username = displayName.replaceAll("[^a-zA-Z0-9]", "");
-      if (username.length() > 20) username = username.substring(0, 20);
-      if (username.length() < 3) username = username + UUID.randomUUID().toString().substring(0, 5);
-    } else if (email != null) {
-      username = email.split("@")[0];
-      if (username.length() > 20) username = username.substring(0, 20);
-    } else if (phone != null) {
-      username = "user" + phone.replaceAll("[^0-9]", "").substring(
-          Math.max(0, phone.replaceAll("[^0-9]", "").length() - 8));
-    } else {
-      username = "user" + UUID.randomUUID().toString().substring(0, 8);
-    }
+    String username = "temp_" + UUID.randomUUID().toString().substring(0, 8);
 
-    // Ensure username is unique
-    String baseUsername = username;
-    int counter = 1;
-    while (userRepository.existsByUsername(username)) {
-      username = baseUsername + counter;
-      if (username.length() > 20) {
-        username = baseUsername.substring(0, 20 - String.valueOf(counter).length()) + counter;
-      }
-      counter++;
-    }
-
-    // Create email if null (for phone-only users)
     if (email == null || email.isEmpty()) {
       email = username + "@phone.local";
     }
 
-    // Ensure email is unique
     if (userRepository.existsByEmail(email)) {
       email = username + "." + UUID.randomUUID().toString().substring(0, 4) + "@phone.local";
     }
@@ -250,7 +313,6 @@ public class FirebaseAuthController {
     user.setAuthProvider(authProvider != null ? authProvider : "firebase");
     if (phone != null) user.setPhoneNumber(phone);
 
-    // Default role: USER
     Set<Role> roles = new HashSet<>();
     Role userRole = roleRepository.findByName(ERole.ROLE_USER)
         .orElseThrow(() -> new RuntimeException("Error: Role is not found."));

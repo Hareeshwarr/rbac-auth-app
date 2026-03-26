@@ -78,11 +78,23 @@ export default function Login() {
         result.user.uid
       );
 
-      loginUser(res.data);
-      const roles = res.data.roles;
-      if (roles.includes("ROLE_ADMIN")) navigate("/admin");
-      else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
-      else navigate("/user");
+      if (res.data.newUser) {
+        // New user — go to onboarding
+        navigate("/onboarding", {
+          state: {
+            token: res.data.accessToken,
+            authProvider: "google",
+            email: result.user.email,
+            phoneNumber: result.user.phoneNumber,
+          }
+        });
+      } else {
+        loginUser(res.data);
+        const roles = res.data.roles;
+        if (roles.includes("ROLE_ADMIN")) navigate("/admin");
+        else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
+        else navigate("/user");
+      }
     } catch (err) {
       if (err.code === "auth/popup-closed-by-user") {
         setError("Sign-in cancelled.");
@@ -155,11 +167,22 @@ export default function Login() {
         result.user.uid
       );
 
-      loginUser(res.data);
-      const roles = res.data.roles;
-      if (roles.includes("ROLE_ADMIN")) navigate("/admin");
-      else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
-      else navigate("/user");
+      if (res.data.newUser) {
+        navigate("/onboarding", {
+          state: {
+            token: res.data.accessToken,
+            authProvider: "phone",
+            email: result.user.email,
+            phoneNumber: result.user.phoneNumber,
+          }
+        });
+      } else {
+        loginUser(res.data);
+        const roles = res.data.roles;
+        if (roles.includes("ROLE_ADMIN")) navigate("/admin");
+        else if (roles.includes("ROLE_MODERATOR")) navigate("/mod");
+        else navigate("/user");
+      }
     } catch (err) {
       if (err.code === "auth/invalid-verification-code") {
         setError("Invalid OTP. Please try again.");
@@ -333,7 +356,7 @@ export default function Login() {
             </button>
 
             <div className="login-links">
-              <span onClick={() => navigate("/register")}>REGISTER</span>
+              <span onClick={() => navigate("/register")}>CREATE ACCOUNT</span>
               <span onClick={() => navigate("/forgot-password")}>FORGOT PASSWORD</span>
             </div>
           </>

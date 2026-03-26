@@ -9,6 +9,7 @@ import ResetPassword from "./pages/ResetPassword";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
+import Onboarding from "./pages/Onboarding";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/unauthorized" element={<div style={{ padding: "2rem", textAlign: "center" }}><h2>Unauthorized</h2><p>You do not have access to this page.</p></div>} />
 

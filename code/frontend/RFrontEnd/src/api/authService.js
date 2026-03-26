@@ -37,3 +37,11 @@ export const phoneResetPassword = (phoneNumber, newPassword, idToken) =>
     newPassword,
     idToken,
   });
+
+export const completeProfile = (token, username, role, email) =>
+  api.post("/auth/complete-profile", {
+    token,
+    username,
+    role,
+    email,
+  });
