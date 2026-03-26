@@ -45,6 +45,13 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- Firebase Admin SDK for verifying phone/Google auth tokens -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.2.0</version>
+		</dependency>
+
 		<!-- PostgreSQL for production (Supabase) -->
 		<dependency>
 			<groupId>org.postgresql</groupId>

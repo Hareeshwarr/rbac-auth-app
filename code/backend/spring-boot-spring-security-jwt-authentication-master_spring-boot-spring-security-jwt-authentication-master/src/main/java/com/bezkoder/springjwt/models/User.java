@@ -28,9 +28,20 @@ public class User {
   @Email
   private String email;
 
-  @NotBlank
   @Size(max = 120)
   private String password;
+
+  @Size(max = 20)
+  @Column(name = "phone_number")
+  private String phoneNumber;
+
+  @Size(max = 255)
+  @Column(name = "firebase_uid")
+  private String firebaseUid;
+
+  @Size(max = 20)
+  @Column(name = "auth_provider")
+  private String authProvider = "local"; // local, google, phone
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(  name = "user_roles", 
@@ -85,5 +96,29 @@ public class User {
 
   public void setRoles(Set<Role> roles) {
     this.roles = roles;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+  }
+
+  public String getFirebaseUid() {
+    return firebaseUid;
+  }
+
+  public void setFirebaseUid(String firebaseUid) {
+    this.firebaseUid = firebaseUid;
+  }
+
+  public String getAuthProvider() {
+    return authProvider;
+  }
+
+  public void setAuthProvider(String authProvider) {
+    this.authProvider = authProvider;
   }
 }

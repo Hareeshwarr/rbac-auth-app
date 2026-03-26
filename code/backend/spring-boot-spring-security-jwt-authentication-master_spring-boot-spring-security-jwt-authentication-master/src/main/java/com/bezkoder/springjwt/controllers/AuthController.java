@@ -137,6 +137,12 @@ public class AuthController {
     }
 
     user.setRoles(roles);
+
+    // Set optional phone number
+    if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().isEmpty()) {
+      user.setPhoneNumber(signUpRequest.getPhoneNumber());
+    }
+
     userRepository.save(user);
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

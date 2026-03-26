@@ -13,6 +13,7 @@ export default function Register() {
     email: "",
     password: "",
     role: "user",
+    phoneNumber: "",
   });
 
   const [error, setError] = useState("");
@@ -41,7 +42,8 @@ export default function Register() {
         form.username,
         form.email,
         form.password,
-        [form.role]
+        [form.role],
+        form.phoneNumber || undefined
       );
       setSuccess("Registration successful! Redirecting...");
       setTimeout(() => navigate("/login"), 1500);
@@ -50,7 +52,7 @@ export default function Register() {
       if (res?.data?.message) {
         setError(res.data.message);
       } else if (res?.status === 0 || err.code === "ERR_NETWORK" || !res) {
-        setError("Cannot connect to server. Make sure the backend is running at http://localhost:8080");
+        setError("Cannot connect to server. Please try again later.");
       } else if (res?.data && typeof res.data === "object") {
         const msg = res.data.message || res.data.error || JSON.stringify(res.data);
         setError(typeof msg === "string" ? msg : "Registration failed. Please try again.");
@@ -101,6 +103,17 @@ export default function Register() {
               required
             />
             <label>PASSWORD</label>
+          </div>
+
+          <div className="input-box">
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              placeholder="+91XXXXXXXXXX"
+            />
+            <label>PHONE NUMBER (OPTIONAL)</label>
           </div>
 
           <div className="select-box">
