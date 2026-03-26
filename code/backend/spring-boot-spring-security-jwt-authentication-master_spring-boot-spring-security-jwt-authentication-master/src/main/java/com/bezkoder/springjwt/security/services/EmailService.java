@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +22,7 @@ public class EmailService {
   @Value("${app.frontend.url:http://localhost:5173}")
   private String frontendUrl;
 
+  @Async
   public void sendPasswordResetEmail(String toEmail, String token) {
     String resetLink = frontendUrl + "/reset-password?token=" + token;
 
@@ -41,7 +43,6 @@ public class EmailService {
       logger.info("Password reset email sent to {}", toEmail);
     } catch (Exception e) {
       logger.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
-      throw new RuntimeException("Failed to send email. Please try again later.");
     }
   }
 }
