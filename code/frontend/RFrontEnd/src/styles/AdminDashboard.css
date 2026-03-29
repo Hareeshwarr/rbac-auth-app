@@ -3,8 +3,9 @@
 .admin-dashboard {
   min-height: 100vh;
   background: linear-gradient(160deg, #f5f3ff 0%, #ede9fe 35%, #faf5ff 100%);
-  padding: 2rem 2.5rem;
+  padding: 2rem 2.5rem 4rem;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow-y: auto;
 }
 
 .dashboard-header {

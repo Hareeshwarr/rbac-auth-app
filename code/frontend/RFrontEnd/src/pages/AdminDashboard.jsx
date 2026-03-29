@@ -34,8 +34,8 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       await getAdminData(); // verify access
       const [usersRes, statsRes] = await Promise.all([getAdminUsers(), getAdminStats()]);
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
       console.error("Admin load error:", err);
       setError("Access denied. Admin privileges required.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
       await changeUserRole(userId, newRole);
       setActionMsg("Role updated successfully!");
       setEditingUser(null);
-      loadData();
+      loadData(true);
       setTimeout(() => setActionMsg(""), 3000);
     } catch {
       setActionMsg("Failed to update role.");
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
       await deleteUser(userId);
       setActionMsg("User deleted successfully!");
       setDeleteConfirm(null);
-      loadData();
+      loadData(true);
       setTimeout(() => setActionMsg(""), 3000);
     } catch {
       setActionMsg("Failed to delete user.");

@@ -3,8 +3,9 @@
 .mod-dashboard {
   min-height: 100vh;
   background: linear-gradient(160deg, #fffbeb 0%, #fef3c7 35%, #fffde7 100%);
-  padding: 2rem 2.5rem;
+  padding: 2rem 2.5rem 4rem;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow-y: auto;
 }
 
 .mod-dashboard .dashboard-header {

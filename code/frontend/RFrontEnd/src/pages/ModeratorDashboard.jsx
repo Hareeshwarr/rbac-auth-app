@@ -31,8 +31,8 @@ export default function ModeratorDashboard() {
     loadData();
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       await getModeratorData(); // verify access
       const [usersRes, statsRes] = await Promise.all([getModUsers(), getModStats()]);
@@ -42,7 +42,7 @@ export default function ModeratorDashboard() {
       console.error("Mod load error:", err);
       setError("Access denied. Moderator privileges required.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -53,7 +53,7 @@ export default function ModeratorDashboard() {
       await deleteStudent(userId);
       setActionMsg("User removed successfully!");
       setDeleteConfirm(null);
-      loadData();
+      loadData(true);
       setTimeout(() => setActionMsg(""), 3000);
     } catch {
       setActionMsg("Failed to remove user.");

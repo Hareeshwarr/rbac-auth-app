@@ -3,8 +3,9 @@
 .user-dashboard {
   min-height: 100vh;
   background: linear-gradient(160deg, #f0f4ff 0%, #e8eef9 35%, #f8fafc 100%);
-  padding: 2rem 2.5rem;
+  padding: 2rem 2.5rem 4rem;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow-y: auto;
 }
 
 .user-dashboard .dashboard-header {
