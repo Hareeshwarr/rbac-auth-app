@@ -213,7 +213,7 @@ export default function Register() {
           <div className="select-box">
             <label>ROLE</label>
             <select name="role" value={form.role} onChange={handleChange}>
-              <option value="user">STUDENT</option>
+              <option value="user">USER</option>
               <option value="admin">ADMIN</option>
               <option value="mod">MODERATOR</option>
             </select>

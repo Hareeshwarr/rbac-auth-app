@@ -114,7 +114,7 @@ export default function AdminDashboard() {
   }
 
   const roleDistData = stats ? [
-    { name: "Students", value: Number(stats.studentCount) || 0, color: "#e9d5ff" },
+    { name: "Users", value: Number(stats.studentCount) || 0, color: "#e9d5ff" },
     { name: "Moderators", value: Number(stats.modCount) || 0, color: "#c084fc" },
     { name: "Admins", value: Number(stats.adminCount) || 0, color: "#8b5cf6" },
   ] : [];
@@ -179,7 +179,7 @@ export default function AdminDashboard() {
           <span className="stat-detail">Medium security</span>
         </div>
         <div className="info-card stat-card">
-          <span className="info-label">Students</span>
+          <span className="info-label">Users</span>
           <span className="info-value big">{stats?.studentCount || 0}</span>
           <span className="stat-detail">Standard access</span>
         </div>
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
                 <option value="all">All Roles</option>
                 <option value="admin">Admin</option>
                 <option value="moderator">Moderator</option>
-                <option value="user">Student</option>
+                <option value="user">User</option>
               </select>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function AdminDashboard() {
                           autoFocus
                           onBlur={() => setEditingUser(null)}
                         >
-                          <option value="user">Student</option>
+                          <option value="user">User</option>
                           <option value="mod">Moderator</option>
                         </select>
                       ) : (

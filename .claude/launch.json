@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5173"],
+      "port": 5173,
+      "cwd": "code/frontend/RFrontEnd",
+      "env": {
+        "VITE_API_URL": "https://rbac-backend-dtj9.onrender.com/api",
+        "VITE_FIREBASE_API_KEY": "AIzaSyCDQ08j9QgudURWM4is_GAoE1agzjoyN_g",
+        "VITE_FIREBASE_AUTH_DOMAIN": "brace-df2a6.firebaseapp.com",
+        "VITE_FIREBASE_PROJECT_ID": "brace-df2a6",
+        "VITE_FIREBASE_STORAGE_BUCKET": "brace-df2a6.firebasestorage.app",
+        "VITE_FIREBASE_MESSAGING_SENDER_ID": "901560350996",
+        "VITE_FIREBASE_APP_ID": "1:901560350996:web:6e9f361b620477340a6a01"
+      }
+    }
+  ]
+}

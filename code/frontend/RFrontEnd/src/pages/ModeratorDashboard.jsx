@@ -51,12 +51,12 @@ export default function ModeratorDashboard() {
   const handleDeleteStudent = async (userId) => {
     try {
       await deleteStudent(userId);
-      setActionMsg("Student removed successfully!");
+      setActionMsg("User removed successfully!");
       setDeleteConfirm(null);
       loadData();
       setTimeout(() => setActionMsg(""), 3000);
     } catch {
-      setActionMsg("Failed to remove student.");
+      setActionMsg("Failed to remove user.");
       setTimeout(() => setActionMsg(""), 3000);
     }
   };
@@ -97,7 +97,7 @@ export default function ModeratorDashboard() {
   }
 
   const roleDistData = stats ? [
-    { name: "Students", value: Number(stats.studentCount) || 0, color: "#fde68a" },
+    { name: "Users", value: Number(stats.studentCount) || 0, color: "#fde68a" },
     { name: "Moderators", value: Number(stats.modCount) || 0, color: "#f59e0b" },
     { name: "Admins", value: Number(stats.adminCount) || 0, color: "#b45309" },
   ] : [];
@@ -135,7 +135,7 @@ export default function ModeratorDashboard() {
           <span className="info-value big">{stats?.totalUsers || 0}</span>
         </div>
         <div className="info-card stat-card">
-          <span className="info-label">Students</span>
+          <span className="info-label">Users</span>
           <span className="info-value big">{stats?.studentCount || 0}</span>
         </div>
         <div className="info-card stat-card">
@@ -153,7 +153,7 @@ export default function ModeratorDashboard() {
         <button className={`tab-btn ${activeTab === "overview" ? "active" : ""}`}
           onClick={() => setActiveTab("overview")}>Overview</button>
         <button className={`tab-btn ${activeTab === "users" ? "active" : ""}`}
-          onClick={() => setActiveTab("users")}>Manage Students</button>
+          onClick={() => setActiveTab("users")}>Manage Users</button>
       </div>
 
       {actionMsg && (
@@ -219,13 +219,13 @@ export default function ModeratorDashboard() {
       {activeTab === "users" && (
         <div className="chart-card">
           <div className="table-header">
-            <h2 className="chart-title">Students ({filteredUsers.length})</h2>
+            <h2 className="chart-title">Users ({filteredUsers.length})</h2>
             <div className="table-controls">
-              <input type="text" placeholder="Search students..." value={search}
+              <input type="text" placeholder="Search users..." value={search}
                 onChange={(e) => setSearch(e.target.value)} className="search-input" />
             </div>
           </div>
-          <p className="read-only-note">You can remove student accounts. Moderator and Admin accounts are managed by Admins only.</p>
+          <p className="read-only-note">You can remove user accounts. Moderator and Admin accounts are managed by Admins only.</p>
           <div className="table-wrapper">
             <table className="user-table">
               <thead>
@@ -252,7 +252,7 @@ export default function ModeratorDashboard() {
                       </span>
                     </td>
                     <td>
-                      <span className="role-badge student">Student</span>
+                      <span className="role-badge student">User</span>
                     </td>
                     <td>
                       {deleteConfirm === u.id ? (
@@ -261,7 +261,7 @@ export default function ModeratorDashboard() {
                           <button className="mod-action-btn cancel" onClick={() => setDeleteConfirm(null)}>No</button>
                         </span>
                       ) : (
-                        <button className="mod-action-btn delete" onClick={() => setDeleteConfirm(u.id)} title="Remove Student">
+                        <button className="mod-action-btn delete" onClick={() => setDeleteConfirm(u.id)} title="Remove User">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="3 6 5 6 21 6"/>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -273,7 +273,7 @@ export default function ModeratorDashboard() {
                   </tr>
                 ))}
                 {filteredUsers.length === 0 && (
-                  <tr><td colSpan="7" className="empty-row">No students found</td></tr>
+                  <tr><td colSpan="7" className="empty-row">No users found</td></tr>
                 )}
               </tbody>
             </table>

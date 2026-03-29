@@ -24,7 +24,7 @@ export default function UserDashboard() {
   const handleLogout = () => { logout(); navigate("/login"); };
 
   const displayRole = user?.roles?.[0]?.replace("ROLE_", "").toLowerCase() ?? "user";
-  const displayRoleLabel = displayRole === "user" ? "Student" : displayRole.charAt(0).toUpperCase() + displayRole.slice(1);
+  const displayRoleLabel = displayRole === "user" ? "User" : displayRole.charAt(0).toUpperCase() + displayRole.slice(1);
 
   const securityData = [
     { name: "Secured", value: 78, color: "#3b82f6" },
@@ -46,7 +46,7 @@ export default function UserDashboard() {
     <div className="user-dashboard">
       <header className="dashboard-header">
         <div>
-          <h1 className="dashboard-title">Student Dashboard</h1>
+          <h1 className="dashboard-title">User Dashboard</h1>
           <span className="security-badge low">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
@@ -152,7 +152,7 @@ export default function UserDashboard() {
             </ResponsiveContainer>
           </div>
           <div className="access-summary">
-            <p>You have access to <strong>student-level</strong> resources. Moderator and Admin sections require elevated privileges.</p>
+            <p>You have access to <strong>user-level</strong> resources. Moderator and Admin sections require elevated privileges.</p>
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ export default function UserDashboard() {
           <div className="rbac-info-item">
             <div className="rbac-role-icon student">S</div>
             <div>
-              <strong>Student (LOW)</strong>
+              <strong>User (LOW)</strong>
               <p>Direct dashboard access. No face verification required.</p>
             </div>
           </div>

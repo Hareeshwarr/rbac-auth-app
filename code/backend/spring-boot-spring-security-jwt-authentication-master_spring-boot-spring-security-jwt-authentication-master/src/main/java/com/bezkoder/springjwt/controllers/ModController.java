@@ -55,11 +55,11 @@ public class ModController {
     boolean isStudent = target.getRoles().stream()
         .allMatch(r -> r.getName() == ERole.ROLE_USER);
     if (!isStudent) {
-      return ResponseEntity.badRequest().body(Map.of("message", "Moderators can only remove Student accounts."));
+      return ResponseEntity.badRequest().body(Map.of("message", "Moderators can only remove User accounts."));
     }
 
     userRepository.deleteById(id);
-    return ResponseEntity.ok(Map.of("message", "Student removed successfully!"));
+    return ResponseEntity.ok(Map.of("message", "User removed successfully!"));
   }
 
   // Get moderator stats
