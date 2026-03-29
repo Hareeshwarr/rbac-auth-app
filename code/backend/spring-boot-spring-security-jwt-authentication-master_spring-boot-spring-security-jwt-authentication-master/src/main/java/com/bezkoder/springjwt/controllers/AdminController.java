@@ -88,7 +88,7 @@ public class AdminController {
     return ResponseEntity.ok(stats);
   }
 
-  // Change user role
+  // Change user role (admins can change students <-> moderators, not admins)
   @PutMapping("/users/{id}/role")
   public ResponseEntity<?> changeUserRole(@PathVariable Long id, @RequestBody Map<String, String> request) {
     String newRole = request.get("role");
@@ -98,15 +98,16 @@ public class AdminController {
       return ResponseEntity.badRequest().body(new MessageResponse("User not found."));
     }
 
-    User user = userOpt.get();
+    User target = userOpt.get();
+    boolean targetIsAdmin = target.getRoles().stream()
+        .anyMatch(r -> r.getName() == ERole.ROLE_ADMIN);
+    if (targetIsAdmin) {
+      return ResponseEntity.badRequest().body(new MessageResponse("Cannot change role of an Admin user."));
+    }
+
     Set<Role> roles = new HashSet<>();
 
     switch (newRole) {
-      case "admin":
-        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-            .orElseThrow(() -> new RuntimeException("Error: Role not found."));
-        roles.add(adminRole);
-        break;
       case "mod":
         Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
             .orElseThrow(() -> new RuntimeException("Error: Role not found."));
@@ -118,18 +119,25 @@ public class AdminController {
         roles.add(userRole);
     }
 
-    user.setRoles(roles);
-    userRepository.save(user);
+    target.setRoles(roles);
+    userRepository.save(target);
 
     return ResponseEntity.ok(new MessageResponse("Role updated successfully!"));
   }
 
-  // Delete user
+  // Delete user (admins can only delete students and moderators, not other admins)
   @DeleteMapping("/users/{id}")
   public ResponseEntity<?> deleteUser(@PathVariable Long id) {
     Optional<User> userOpt = userRepository.findById(id);
     if (userOpt.isEmpty()) {
       return ResponseEntity.badRequest().body(new MessageResponse("User not found."));
+    }
+
+    User target = userOpt.get();
+    boolean targetIsAdmin = target.getRoles().stream()
+        .anyMatch(r -> r.getName() == ERole.ROLE_ADMIN);
+    if (targetIsAdmin) {
+      return ResponseEntity.badRequest().body(new MessageResponse("Cannot delete an Admin user."));
     }
 
     userRepository.deleteById(id);

@@ -4,6 +4,7 @@ import {
   getModeratorData,
   getModUsers,
   getModStats,
+  deleteStudent,
 } from "../api/dashboardService";
 import { AuthContext } from "../auth/AuthContext";
 import {
@@ -22,8 +23,9 @@ export default function ModeratorDashboard() {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [actionMsg, setActionMsg] = useState("");
 
   useEffect(() => {
     loadData();
@@ -46,13 +48,23 @@ export default function ModeratorDashboard() {
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
-  const filteredUsers = users.filter((u) => {
-    const matchSearch = u.username?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase());
-    const matchRole = roleFilter === "all" ||
-      u.roles?.some((r) => r.toLowerCase().includes(roleFilter));
-    return matchSearch && matchRole;
-  });
+  const handleDeleteStudent = async (userId) => {
+    try {
+      await deleteStudent(userId);
+      setActionMsg("Student removed successfully!");
+      setDeleteConfirm(null);
+      loadData();
+      setTimeout(() => setActionMsg(""), 3000);
+    } catch {
+      setActionMsg("Failed to remove student.");
+      setTimeout(() => setActionMsg(""), 3000);
+    }
+  };
+
+  const filteredUsers = users.filter((u) =>
+    u.username?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const getRoleBadge = (roles) => {
     if (!roles?.length) return "student";
@@ -141,8 +153,18 @@ export default function ModeratorDashboard() {
         <button className={`tab-btn ${activeTab === "overview" ? "active" : ""}`}
           onClick={() => setActiveTab("overview")}>Overview</button>
         <button className={`tab-btn ${activeTab === "users" ? "active" : ""}`}
-          onClick={() => setActiveTab("users")}>View Users</button>
+          onClick={() => setActiveTab("users")}>Manage Students</button>
       </div>
+
+      {actionMsg && (
+        <div className={actionMsg.includes("Failed") ? "dashboard-error" : ""}
+          style={!actionMsg.includes("Failed") ? {
+            background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#047857",
+            padding: "0.75rem 1rem", borderRadius: "8px", marginBottom: "1.5rem"
+          } : {}}>
+          <p style={{ margin: 0 }}>{actionMsg}</p>
+        </div>
+      )}
 
       {activeTab === "overview" && (
         <div className="dashboard-charts">
@@ -197,19 +219,13 @@ export default function ModeratorDashboard() {
       {activeTab === "users" && (
         <div className="chart-card">
           <div className="table-header">
-            <h2 className="chart-title">All Users ({filteredUsers.length})</h2>
+            <h2 className="chart-title">Students ({filteredUsers.length})</h2>
             <div className="table-controls">
-              <input type="text" placeholder="Search users..." value={search}
+              <input type="text" placeholder="Search students..." value={search}
                 onChange={(e) => setSearch(e.target.value)} className="search-input" />
-              <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="filter-select">
-                <option value="all">All Roles</option>
-                <option value="admin">Admin</option>
-                <option value="moderator">Moderator</option>
-                <option value="user">Student</option>
-              </select>
             </div>
           </div>
-          <p className="read-only-note">Read-only view — contact an admin to modify users</p>
+          <p className="read-only-note">You can remove student accounts. Moderator and Admin accounts are managed by Admins only.</p>
           <div className="table-wrapper">
             <table className="user-table">
               <thead>
@@ -220,6 +236,7 @@ export default function ModeratorDashboard() {
                   <th>Phone</th>
                   <th>Auth</th>
                   <th>Role</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -235,14 +252,28 @@ export default function ModeratorDashboard() {
                       </span>
                     </td>
                     <td>
-                      <span className={`role-badge ${getRoleBadge(u.roles)}`}>
-                        {getRoleLabel(u.roles)}
-                      </span>
+                      <span className="role-badge student">Student</span>
+                    </td>
+                    <td>
+                      {deleteConfirm === u.id ? (
+                        <span style={{ display: "inline-flex", gap: "4px" }}>
+                          <button className="mod-action-btn confirm" onClick={() => handleDeleteStudent(u.id)}>Yes</button>
+                          <button className="mod-action-btn cancel" onClick={() => setDeleteConfirm(null)}>No</button>
+                        </span>
+                      ) : (
+                        <button className="mod-action-btn delete" onClick={() => setDeleteConfirm(u.id)} title="Remove Student">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                          Remove
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
                 {filteredUsers.length === 0 && (
-                  <tr><td colSpan="6" className="empty-row">No users found</td></tr>
+                  <tr><td colSpan="7" className="empty-row">No students found</td></tr>
                 )}
               </tbody>
             </table>

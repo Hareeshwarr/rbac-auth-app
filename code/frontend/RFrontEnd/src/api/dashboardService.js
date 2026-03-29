@@ -15,3 +15,4 @@ export const deleteUser = (userId) => api.delete(`/admin/users/${userId}`);
 // ===== MODERATOR APIs =====
 export const getModUsers = () => api.get("/mod/users");
 export const getModStats = () => api.get("/mod/stats");
+export const deleteStudent = (userId) => api.delete(`/mod/users/${userId}`);

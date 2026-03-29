@@ -362,6 +362,39 @@
   padding: 2rem !important;
 }
 
+.mod-action-btn {
+  padding: 4px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.mod-action-btn.delete {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.mod-action-btn.delete:hover {
+  background: #fef2f2;
+}
+
+.mod-action-btn.confirm {
+  color: #fff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.mod-action-btn.cancel {
+  color: #6b7280;
+}
+
 /* Loading */
 .mod-dashboard-loading {
   background: linear-gradient(160deg, #fffbeb 0%, #fef3c7 100%) !important;

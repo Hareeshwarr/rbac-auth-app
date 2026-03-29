@@ -21,24 +21,45 @@ public class ModController {
   @Autowired
   UserRepository userRepository;
 
-  // Get all users (read-only view for moderators)
+  // Get students only (moderators can manage students)
   @GetMapping("/users")
-  public ResponseEntity<?> getAllUsers() {
-    List<User> users = userRepository.findAll();
-    List<Map<String, Object>> result = users.stream().map(user -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("id", user.getId());
-      map.put("username", user.getUsername());
-      map.put("email", user.getEmail());
-      map.put("phoneNumber", user.getPhoneNumber());
-      map.put("authProvider", user.getAuthProvider());
-      map.put("roles", user.getRoles().stream()
-          .map(r -> r.getName().name())
-          .collect(Collectors.toList()));
-      return map;
-    }).collect(Collectors.toList());
+  public ResponseEntity<?> getStudents() {
+    List<User> allUsers = userRepository.findAll();
+    List<Map<String, Object>> result = allUsers.stream()
+        .filter(u -> u.getRoles().stream().allMatch(r -> r.getName() == ERole.ROLE_USER))
+        .map(user -> {
+          Map<String, Object> map = new HashMap<>();
+          map.put("id", user.getId());
+          map.put("username", user.getUsername());
+          map.put("email", user.getEmail());
+          map.put("phoneNumber", user.getPhoneNumber());
+          map.put("authProvider", user.getAuthProvider());
+          map.put("roles", user.getRoles().stream()
+              .map(r -> r.getName().name())
+              .collect(Collectors.toList()));
+          return map;
+        }).collect(Collectors.toList());
 
     return ResponseEntity.ok(result);
+  }
+
+  // Delete a student (moderators can only delete ROLE_USER accounts)
+  @DeleteMapping("/users/{id}")
+  public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
+    Optional<User> userOpt = userRepository.findById(id);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.badRequest().body(Map.of("message", "User not found."));
+    }
+
+    User target = userOpt.get();
+    boolean isStudent = target.getRoles().stream()
+        .allMatch(r -> r.getName() == ERole.ROLE_USER);
+    if (!isStudent) {
+      return ResponseEntity.badRequest().body(Map.of("message", "Moderators can only remove Student accounts."));
+    }
+
+    userRepository.deleteById(id);
+    return ResponseEntity.ok(Map.of("message", "Student removed successfully!"));
   }
 
   // Get moderator stats
