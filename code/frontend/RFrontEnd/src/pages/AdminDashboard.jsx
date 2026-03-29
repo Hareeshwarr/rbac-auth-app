@@ -37,13 +37,13 @@ export default function AdminDashboard() {
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      await getAdminData(); // verify access
+      if (!silent) await getAdminData(); // verify access on initial load only
       const [usersRes, statsRes] = await Promise.all([getAdminUsers(), getAdminStats()]);
       setUsers(usersRes.data);
       setStats(statsRes.data);
     } catch (err) {
       console.error("Admin load error:", err);
-      setError("Access denied. Admin privileges required.");
+      if (!silent) setError("Access denied. Admin privileges required.");
     } finally {
       if (!silent) setLoading(false);
     }
@@ -52,9 +52,12 @@ export default function AdminDashboard() {
   const handleRoleChange = async (userId, newRole) => {
     try {
       await changeUserRole(userId, newRole);
+      const roleMap = { mod: ["ROLE_MODERATOR"], user: ["ROLE_USER"] };
+      setUsers(prev => prev.map(u =>
+        u.id === userId ? { ...u, roles: roleMap[newRole] || ["ROLE_USER"] } : u
+      ));
       setActionMsg("Role updated successfully!");
       setEditingUser(null);
-      loadData(true);
       setTimeout(() => setActionMsg(""), 3000);
     } catch {
       setActionMsg("Failed to update role.");
@@ -64,22 +67,27 @@ export default function AdminDashboard() {
   const handleDelete = async (userId) => {
     try {
       await deleteUser(userId);
-      setActionMsg("User deleted successfully!");
+      setUsers(prev => prev.filter(u => u.id !== userId));
       setDeleteConfirm(null);
-      loadData(true);
+      setActionMsg("User deleted successfully!");
       setTimeout(() => setActionMsg(""), 3000);
-    } catch {
-      setActionMsg("Failed to delete user.");
+      getAdminStats().then(res => setStats(res.data)).catch(() => {});
+    } catch (err) {
+      const is401 = err?.response?.status === 401;
+      setDeleteConfirm(null);
+      setActionMsg(is401 ? "Session expired. Please log out and re-login." : "Failed to delete user.");
+      setTimeout(() => setActionMsg(""), 5000);
     }
   };
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
   const filteredUsers = users.filter((u) => {
-    const matchSearch = u.username?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch =
+      (u.username?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
+      (u.email?.toLowerCase() ?? "").includes(search.toLowerCase());
     const matchRole = roleFilter === "all" ||
-      u.roles?.some((r) => r.toLowerCase().includes(roleFilter));
+      u.roles?.some((r) => (typeof r === "string" ? r : r?.name ?? "").toLowerCase().includes(roleFilter));
     return matchSearch && matchRole;
   });
 
@@ -93,6 +101,7 @@ export default function AdminDashboard() {
 
   const getRoleLabel = (roles) => {
     const badge = getRoleBadge(roles);
+    if (badge === "student") return "User";
     return badge.charAt(0).toUpperCase() + badge.slice(1);
   };
 

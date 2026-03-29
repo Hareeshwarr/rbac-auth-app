@@ -34,13 +34,13 @@ export default function ModeratorDashboard() {
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      await getModeratorData(); // verify access
+      if (!silent) await getModeratorData(); // verify access on initial load only
       const [usersRes, statsRes] = await Promise.all([getModUsers(), getModStats()]);
       setUsers(usersRes.data);
       setStats(statsRes.data);
     } catch (err) {
       console.error("Mod load error:", err);
-      setError("Access denied. Moderator privileges required.");
+      if (!silent) setError("Access denied. Moderator privileges required.");
     } finally {
       if (!silent) setLoading(false);
     }
@@ -51,19 +51,22 @@ export default function ModeratorDashboard() {
   const handleDeleteStudent = async (userId) => {
     try {
       await deleteStudent(userId);
-      setActionMsg("User removed successfully!");
+      setUsers(prev => prev.filter(u => u.id !== userId));
       setDeleteConfirm(null);
-      loadData(true);
+      setActionMsg("User removed successfully!");
       setTimeout(() => setActionMsg(""), 3000);
-    } catch {
-      setActionMsg("Failed to remove user.");
-      setTimeout(() => setActionMsg(""), 3000);
+      getModStats().then(res => setStats(res.data)).catch(() => {});
+    } catch (err) {
+      const is401 = err?.response?.status === 401;
+      setDeleteConfirm(null);
+      setActionMsg(is401 ? "Session expired. Please log out and re-login." : "Failed to remove user.");
+      setTimeout(() => setActionMsg(""), 5000);
     }
   };
 
   const filteredUsers = users.filter((u) =>
-    u.username?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
+    (u.username?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
+    (u.email?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
   const getRoleBadge = (roles) => {
@@ -76,6 +79,7 @@ export default function ModeratorDashboard() {
 
   const getRoleLabel = (roles) => {
     const badge = getRoleBadge(roles);
+    if (badge === "student") return "User";
     return badge.charAt(0).toUpperCase() + badge.slice(1);
   };
 
