@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.bezkoder.springjwt.models.ERole;
 import com.bezkoder.springjwt.models.User;
+import com.bezkoder.springjwt.repository.PasswordResetTokenRepository;
 import com.bezkoder.springjwt.repository.UserRepository;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -20,6 +21,9 @@ public class ModController {
 
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  PasswordResetTokenRepository passwordResetTokenRepository;
 
   // Get students only (moderators can manage students)
   @GetMapping("/users")
@@ -58,6 +62,7 @@ public class ModController {
       return ResponseEntity.badRequest().body(Map.of("message", "Moderators can only remove User accounts."));
     }
 
+    passwordResetTokenRepository.deleteByUser(target);
     userRepository.deleteById(id);
     return ResponseEntity.ok(Map.of("message", "User removed successfully!"));
   }

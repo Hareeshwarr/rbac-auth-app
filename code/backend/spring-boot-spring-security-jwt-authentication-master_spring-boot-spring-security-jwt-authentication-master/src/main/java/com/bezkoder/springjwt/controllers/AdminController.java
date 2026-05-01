@@ -13,6 +13,7 @@ import com.bezkoder.springjwt.models.ERole;
 import com.bezkoder.springjwt.models.Role;
 import com.bezkoder.springjwt.models.User;
 import com.bezkoder.springjwt.payload.response.MessageResponse;
+import com.bezkoder.springjwt.repository.PasswordResetTokenRepository;
 import com.bezkoder.springjwt.repository.RoleRepository;
 import com.bezkoder.springjwt.repository.UserRepository;
 
@@ -30,6 +31,9 @@ public class AdminController {
 
   @Autowired
   PasswordEncoder encoder;
+
+  @Autowired
+  PasswordResetTokenRepository passwordResetTokenRepository;
 
   // Get all users
   @GetMapping("/users")
@@ -140,6 +144,7 @@ public class AdminController {
       return ResponseEntity.badRequest().body(new MessageResponse("Cannot delete an Admin user."));
     }
 
+    passwordResetTokenRepository.deleteByUser(target);
     userRepository.deleteById(id);
     return ResponseEntity.ok(new MessageResponse("User deleted successfully!"));
   }
